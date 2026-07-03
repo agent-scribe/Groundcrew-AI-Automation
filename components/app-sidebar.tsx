@@ -10,6 +10,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -27,6 +28,15 @@ export function AppSidebar() {
       <div className="flex h-[60px] items-center border-b border-border px-5">
         <Link href="/dashboard" aria-label="Groundcrew dashboard">
           <Logo size={20} />
+        </Link>
+      </div>
+      <div className="p-3 pb-0">
+        <Link
+          href="/upload"
+          className="flex h-9 items-center justify-center gap-2 rounded-[var(--radius-ctl)] bg-primary text-sm font-medium text-primary-fg transition-colors duration-[140ms] hover:bg-primary-hover"
+        >
+          <Plus size={16} strokeWidth={2} aria-hidden />
+          New onboarding
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-3" aria-label="Main">
