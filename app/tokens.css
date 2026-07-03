@@ -1,0 +1,46 @@
+/* Groundcrew — Flight Line Editorial tokens (Plan 10 §3, verbatim) */
+:root {
+  /* Warm ink & paper (editorial neutrals) */
+  --ink-950:#110F0C; --ink-900:#1C1915; --ink-800:#2B2721; --ink-700:#453F36;
+  --ink-500:#736A5E; --ink-400:#A29A8D; --ink-300:#D3CDC3; --ink-200:#E6E2DA;
+  --ink-100:#F2EFEA; --paper:#FAF9F6; --white:#FFFFFF;
+
+  /* Brand */
+  --tower-900:#1E3A8A;     /* primary actions — luxury navy            */
+  --tower-700:#1D4ED8;     /* hover/active                             */
+  --cleared-600:#059669;   /* THE accent: verified, approvals, wheels up */
+  --cleared-700:#047857;
+  --cleared-100:#D1FAE5;
+  --brass-600:#A16207;     /* hairlines + premium badges only          */
+
+  /* Semantics */
+  --marshal-600:#EA580C;   /* overdue chase, escalations ONLY          */
+  --warning-500:#D97706;   /* aging 24h, token expiry                  */
+  --danger-600:#DC2626;    /* errors, destructive                      */
+  --info-600:#2563EB;      /* links, focus ring                       */
+
+  /* Light theme (default — document product) */
+  --bg:var(--paper); --surface:var(--white); --surface-2:var(--ink-100);
+  --border:var(--ink-200); --border-strong:var(--ink-300);
+  --text:var(--ink-900); --text-2:var(--ink-500); --text-inverse:var(--paper);
+  --primary:var(--tower-900); --primary-fg:#FFFFFF; --accent:var(--cleared-600);
+  --ring:var(--info-600);
+  --highlight:#FEF3C7;     /* citation highlight in document viewer    */
+
+  /* Motion (Plan 10 §5) */
+  --dur-fast:140ms; --dur:220ms; --dur-slow:340ms;
+  --ease-enter:cubic-bezier(0,0,.35,1);
+  --ease-exit:cubic-bezier(.65,0,1,1);
+
+  /* Brass hairline */
+  --hairline-brass:1px solid color-mix(in srgb, var(--brass-600) 30%, transparent);
+}
+.dark {
+  --bg:var(--ink-950); --surface:var(--ink-900); --surface-2:var(--ink-800);
+  --border:var(--ink-800); --border-strong:var(--ink-700);
+  --text:var(--ink-100); --text-2:var(--ink-400); --text-inverse:var(--ink-900);
+  --primary:#3B62D8; --primary-fg:#FAF9F6; --accent:#10B981; --ring:#60A5FA;
+  --highlight:rgb(254 243 199 / .16);
+}
+[data-tenant] { --primary:var(--tenant-primary,var(--tower-900));
+                --accent:var(--tenant-accent,var(--cleared-600)); }

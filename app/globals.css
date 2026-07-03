@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* Colors — tokens only; no raw hex in components (Plan 10 §10 grep gate) */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-inverse: var(--text-inverse);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--tower-700);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-cleared: var(--cleared-600);
+  --color-cleared-strong: var(--cleared-700);
+  --color-cleared-soft: var(--cleared-100);
+  --color-brass: var(--brass-600);
+  --color-marshal: var(--marshal-600);
+  --color-warning: var(--warning-500);
+  --color-danger: var(--danger-600);
+  --color-info: var(--info-600);
+  --color-ring: var(--ring);
+  --color-highlight: var(--highlight);
+  --color-ink-100: var(--ink-100);
+  --color-ink-200: var(--ink-200);
+  --color-ink-300: var(--ink-300);
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-700: var(--ink-700);
+  --color-ink-900: var(--ink-900);
+  --color-ink-950: var(--ink-950);
+  --color-paper: var(--paper);
+
+  /* Type (Plan 10 §4) */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  /* Radius (Plan 10 §5) */
+  --radius-ctl: 10px;
+  --radius-card: 14px;
+  --radius-modal: 20px;
+  --radius-item: 12px;
+
+  /* Elevation */
+  --shadow-e1: 0 1px 2px rgb(17 15 12 / .05);
+  --shadow-e2: 0 2px 8px rgb(17 15 12 / .07), 0 1px 2px rgb(17 15 12 / .05);
+  --shadow-e3: 0 8px 28px rgb(17 15 12 / .12), 0 2px 8px rgb(17 15 12 / .06);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 { line-height: 1.1; }
+
+::selection { background: var(--cleared-100); color: var(--ink-900); }
+
+/* Focus — visible 2px ring (Plan 10 §9) */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--primary); color: var(--primary-fg);
+  padding: 8px 16px; border-radius: 0 0 10px 0;
+}
+.skip-link:focus { left: 0; }
+
+/* Signature micro-interactions (Plan 10 §5) */
+@keyframes gc-sweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes gc-pulse-highlight {
+  0%, 100% { background-color: var(--highlight); }
+  50% { background-color: color-mix(in srgb, var(--highlight) 40%, transparent); }
+}
+@keyframes gc-shake-once {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+@keyframes gc-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@keyframes gc-row-clear { 0% { background-color: var(--cleared-100); } 100% { background-color: transparent; } }
+@keyframes gc-taxi {
+  0% { transform: translateX(-24px); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(240px); opacity: 0; }
+}
+
+.gc-sweep { animation: gc-sweep 480ms var(--ease-enter) 1; transform-origin: left; }
+.gc-shake { animation: gc-shake-once 300ms ease-in-out 1; }
+.gc-pulse { animation: gc-pulse-highlight 600ms ease-in-out 2; }
+.gc-row-cleared { animation: gc-row-clear 800ms var(--ease-exit) 1; }
+
+/* Reduced motion — loaders → static, sweeps/shakes off (Plan 10 §9) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Document viewer body (Plan 10 §4) */
+.gc-doc-body { font-size: 15px; line-height: 1.7; }
+
+/* Tabular numerals for mono data */
+[data-mono] { font-variant-numeric: tabular-nums; }
