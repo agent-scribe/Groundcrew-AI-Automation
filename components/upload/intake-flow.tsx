@@ -8,6 +8,7 @@ import {
   Copy,
   Check,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RunwayLoader } from "@/components/upload/runway-loader";
@@ -15,16 +16,14 @@ import { RunwayLoader } from "@/components/upload/runway-loader";
 const MAX_MB = 50;
 const ACCEPT = [".pdf", ".docx"];
 
-/** Honest-progress stage log (Plan 10 §8) — simulated pipeline for the demo build. */
+/** Honest-progress stage log (Plan 10 §8). */
 const STAGE_LOG = [
-  { at: 400, line: "Uploading manifest… done" },
-  { at: 1300, line: "Reading manifest… 12 pages" },
-  { at: 2600, line: "Layout extraction… text + tables" },
-  { at: 4000, line: "Extracting deliverables… 6 found" },
-  { at: 5400, line: "Extracting milestones… 3 found" },
-  { at: 6600, line: "Verifying citations… 5/6 grounded" },
-  { at: 7600, line: "Building plan tree… done" },
-  { at: 8400, line: "Manifest ready for review" },
+  { at: 400, line: "Uploading manifest…" },
+  { at: 1800, line: "Reading manifest pages…" },
+  { at: 3500, line: "Pass 1 — extracting deliverables…" },
+  { at: 6000, line: "Pass 1 — extracting milestones & budget…" },
+  { at: 9000, line: "Pass 2 — verifying citations…" },
+  { at: 12000, line: "Building plan tree…" },
 ];
 
 type Phase = "form" | "processing";
@@ -33,7 +32,8 @@ export function IntakeFlow() {
   const router = useRouter();
   const search = useSearchParams();
   const [phase, setPhase] = useState<Phase>("form");
-  const [file, setFile] = useState<{ name: string; size: number } | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileMeta, setFileMeta] = useState<{ name: string; size: number } | null>(null);
   const [client, setClient] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,19 +42,83 @@ export function IntakeFlow() {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const startProcessing = useCallback(() => {
+  const startProcessing = useCallback(async () => {
     setPhase("processing");
     setLog([]);
-    STAGE_LOG.forEach((s) => {
-      setTimeout(() => setLog((l) => [...l, s.line]), s.at);
-    });
-    setTimeout(() => router.push("/onboardings/acme-seo/review"), 9300);
-  }, [router]);
+    setError(null);
+
+    // Start honest progress indicators
+    const timers = STAGE_LOG.map((s) =>
+      setTimeout(() => setLog((l) => [...l, s.line]), s.at),
+    );
+
+    try {
+      if (!file) {
+        // Demo/sample mode — use fixture
+        STAGE_LOG.forEach((s) => {
+          setTimeout(() => setLog((l) =>
+            l.includes(s.line) ? l : [...l, s.line + " done"]
+          ), s.at + 800);
+        });
+        setTimeout(() => {
+          setLog((l) => [...l, "Manifest ready for review"]);
+          router.push("/onboardings/acme-seo/review");
+        }, 9300);
+        return;
+      }
+
+      // Real upload flow
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("clientName", client);
+      formData.append("clientEmail", email);
+      formData.append("projectName", client || file.name.replace(/\.\w+$/, ""));
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.error || "Upload failed");
+      }
+
+      const { projectId } = await uploadRes.json();
+      setLog((l) => [...l, "Upload complete — starting extraction…"]);
+
+      // Trigger extraction
+      const extractRes = await fetch("/api/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+
+      if (!extractRes.ok) {
+        const err = await extractRes.json();
+        throw new Error(err.error || "Extraction failed");
+      }
+
+      const result = await extractRes.json();
+      setLog((l) => [
+        ...l,
+        `Extraction complete — ${result.itemCount} items, ${result.verifiedCount} verified`,
+        "Manifest ready for review",
+      ]);
+
+      // Navigate to review page
+      setTimeout(() => router.push(`/onboardings/${projectId}/review`), 1500);
+    } catch (err) {
+      timers.forEach(clearTimeout);
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setPhase("form");
+    }
+  }, [file, client, email, router]);
 
   // Sample-SOW instant path (dashboard empty-state CTA)
   useEffect(() => {
     if (search.get("sample") === "1" && phase === "form") {
-      setFile({ name: "acme-seo-sow.pdf", size: 1_240_000 });
+      setFileMeta({ name: "acme-seo-sow.pdf", size: 1_240_000 });
       setClient("Acme Outdoor Co");
       setEmail("dana@acmeoutdoor.com");
     }
@@ -73,7 +137,10 @@ export function IntakeFlow() {
     if (!f) return;
     const err = validate(f);
     setError(err);
-    if (!err) setFile({ name: f.name, size: f.size });
+    if (!err) {
+      setFile(f);
+      setFileMeta({ name: f.name, size: f.size });
+    }
   };
 
   const copyEmailIn = async () => {
@@ -103,7 +170,7 @@ export function IntakeFlow() {
           <ul className="space-y-2 font-mono text-[13px]" data-mono>
             {log.map((line, i) => (
               <li key={line} className="flex items-center gap-2.5 text-text-2">
-                {i === log.length - 1 && log.length < STAGE_LOG.length ? (
+                {i === log.length - 1 && !line.includes("ready for review") ? (
                   <span className="size-3.5 shrink-0 animate-pulse rounded-full border-2 border-cleared" />
                 ) : (
                   <Check size={14} strokeWidth={2.5} className="shrink-0 text-cleared" aria-hidden />
@@ -119,6 +186,13 @@ export function IntakeFlow() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {error && (
+        <div className="mb-4 flex items-center gap-2 rounded-[var(--radius-card)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
+          <AlertCircle size={16} />
+          {error}
+        </div>
+      )}
+
       {/* Drop zone */}
       <div
         role="button"
@@ -157,11 +231,11 @@ export function IntakeFlow() {
         <p className="mt-1 text-sm text-text-2">
           PDF or DOCX · up to {MAX_MB}MB · 100 pages
         </p>
-        {file && (
+        {fileMeta && (
           <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-2 py-1.5 pl-3 pr-2 text-sm">
             <FileText size={14} aria-hidden />
             <span className="font-mono text-[12.5px]" data-mono>
-              {file.name}
+              {fileMeta.name}
             </span>
             <button
               type="button"
@@ -169,17 +243,13 @@ export function IntakeFlow() {
               onClick={(e) => {
                 e.stopPropagation();
                 setFile(null);
+                setFileMeta(null);
               }}
               className="rounded-full p-0.5 hover:bg-surface"
             >
               <X size={13} aria-hidden />
             </button>
           </span>
-        )}
-        {error && (
-          <p role="alert" className="mt-3 text-sm font-medium text-danger">
-            {error}
-          </p>
         )}
       </div>
 
@@ -226,11 +296,11 @@ export function IntakeFlow() {
 
       <div className="mt-8 flex items-center justify-between">
         <p className="text-xs text-text-2">
-          Demo build: parsing is simulated on the sample fixture.
+          {file ? "Real extraction via OpenAI GPT-4o" : "Demo: uses sample fixture data"}
         </p>
         <Button
           size="lg"
-          disabled={!file || !client}
+          disabled={!fileMeta || !client}
           onClick={startProcessing}
         >
           Start pre-flight
