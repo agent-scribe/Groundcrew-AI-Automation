@@ -1,3 +1,4 @@
+import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendChaseEmail } from "@/lib/email/resend";
@@ -8,6 +9,10 @@ import { sendChaseEmail } from "@/lib/email/resend";
  * Determines pending portal steps, sends email, logs chase_event.
  */
 export async function POST(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = await applyRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 

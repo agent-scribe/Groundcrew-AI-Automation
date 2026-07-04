@@ -9,7 +9,9 @@ function getResend() {
   return _resend;
 }
 
-const FROM = "Groundcrew <onboarding@resend.dev>";
+const FROM =
+  process.env.RESEND_FROM_EMAIL ??
+  "Groundcrew <onboarding@groundcrew.online>";
 
 /**
  * Send the magic-link / OTP email to a portal visitor.

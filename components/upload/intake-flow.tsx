@@ -145,7 +145,7 @@ export function IntakeFlow() {
 
   const copyEmailIn = async () => {
     try {
-      await navigator.clipboard.writeText("sow@northbeam.groundcrew.app");
+      await navigator.clipboard.writeText("sow@groundcrew.online");
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -258,7 +258,7 @@ export function IntakeFlow() {
         <span className="text-text-2">
           Or forward it to{" "}
           <span className="font-mono text-text" data-mono>
-            sow@northbeam.groundcrew.app
+            sow@groundcrew.online
           </span>
         </span>
         <button

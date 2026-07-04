@@ -20,6 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.groundcrew.online"),
   title: {
     default: "Groundcrew — Signed to kickoff, on autopilot.",
     template: "%s · Groundcrew",

@@ -1,3 +1,4 @@
+import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -7,6 +8,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Pass 2: verify citations against source pages.
  */
 export async function POST(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = await applyRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   const supabase = await createServerSupabase();
 
   const { data: { user } } = await supabase.auth.getUser();

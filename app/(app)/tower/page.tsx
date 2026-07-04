@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const metadata = { title: "Tower" };
 
 const WEBHOOKS = [
-  ["https://hooks.northbeam.co/groundcrew", "onboarding.completed · chase.escalated", true],
+  ["https://hooks.groundcrew.online/webhook", "onboarding.completed · chase.escalated", true],
   ["https://zapier.com/hooks/catch/48812", "portal.item_completed", false],
 ] as const;
 

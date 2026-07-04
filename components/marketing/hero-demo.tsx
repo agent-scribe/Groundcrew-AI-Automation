@@ -64,7 +64,7 @@ export function HeroDemo() {
         <span className="size-2.5 rounded-full bg-ink-300" />
         <span className="size-2.5 rounded-full bg-ink-300" />
         <span className="ml-3 flex-1 truncate rounded bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-text-2" data-mono>
-          groundcrew.app/onboardings/acme-seo/review
+          www.groundcrew.online/onboardings/acme-seo/review
         </span>
         <button
           type="button"

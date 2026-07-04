@@ -1,3 +1,4 @@
+import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendPortalOtp } from "@/lib/email/resend";
@@ -7,6 +8,10 @@ import { sendPortalOtp } from "@/lib/email/resend";
  * Body: { portalToken: string, email: string }
  */
 export async function POST(request: Request) {
+  // Rate limiting
+  const rateLimitResponse = await applyRateLimit(getIdentifier(request));
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { portalToken, email } = await request.json();
 
   if (!portalToken || !email) {
