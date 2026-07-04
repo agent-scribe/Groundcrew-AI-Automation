@@ -1,4 +1,5 @@
 import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
+import { isValidUUID } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -20,8 +21,8 @@ export async function POST(request: Request) {
   }
 
   const { projectId } = await request.json();
-  if (!projectId) {
-    return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
+  if (!projectId || !isValidUUID(projectId)) {
+    return NextResponse.json({ error: "Invalid projectId" }, { status: 400 });
   }
 
   // Load project
@@ -96,7 +97,8 @@ Be exhaustive. Return ONLY valid JSON, no markdown.`;
 
   if (!pass1Res.ok) {
     const errText = await pass1Res.text();
-    return NextResponse.json({ error: `OpenAI Pass 1 failed: ${errText}` }, { status: 502 });
+    console.error("OpenAI Pass 1 failed:", errText);
+    return NextResponse.json({ error: "AI extraction failed. Please try again." }, { status: 502 });
   }
 
   const pass1Json = await pass1Res.json();

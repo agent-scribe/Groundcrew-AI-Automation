@@ -11,6 +11,9 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const state = searchParams.get("state") || "/settings";
 
+  // Validate state is a safe relative path (prevent open redirect)
+  const safePath = state.startsWith("/") && !state.startsWith("//") ? state : "/settings";
+
   if (!code) {
     return NextResponse.redirect(`${origin}/settings?error=asana_no_code`);
   }
@@ -19,7 +22,6 @@ export async function GET(request: Request) {
     const redirectUri = `${origin}/api/asana/callback`;
     const token = await exchangeAsanaCode(code, redirectUri);
 
-    // Store token in Supabase user metadata
     const supabase = await createServerSupabase();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -33,11 +35,9 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.redirect(`${origin}${state}?asana=connected`);
+    return NextResponse.redirect(`${origin}${safePath}?asana=connected`);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.redirect(
-      `${origin}/settings?error=asana_oauth&detail=${encodeURIComponent(msg)}`,
-    );
+    console.error("Asana OAuth error:", err);
+    return NextResponse.redirect(`${origin}/settings?error=asana_oauth`);
   }
 }

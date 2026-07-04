@@ -1,4 +1,5 @@
 import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
+import { isValidEmail, isValidUUID } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendPortalOtp } from "@/lib/email/resend";
@@ -14,8 +15,8 @@ export async function POST(request: Request) {
 
   const { portalToken, email } = await request.json();
 
-  if (!portalToken || !email) {
-    return NextResponse.json({ error: "Missing portalToken or email" }, { status: 400 });
+  if (!portalToken || !isValidUUID(portalToken) || !email || !isValidEmail(email)) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   const supabase = await createServerSupabase();

@@ -1,4 +1,5 @@
 import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
+import { validateFile, sanitizeString } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -7,7 +8,6 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * create a project record, return project ID.
  */
 export async function POST(request: Request) {
-  // Rate limiting
   const rateLimitResponse = await applyRateLimit(getIdentifier(request));
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -32,12 +32,18 @@ export async function POST(request: Request) {
   const orgId = membership.org_id as string;
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
-  const clientName = (formData.get("clientName") as string) || "";
-  const clientEmail = (formData.get("clientEmail") as string) || "";
-  const projectName = (formData.get("projectName") as string) || clientName || "Untitled";
+  const clientName = sanitizeString((formData.get("clientName") as string) || "");
+  const clientEmail = sanitizeString((formData.get("clientEmail") as string) || "");
+  const projectName = sanitizeString((formData.get("projectName") as string) || clientName || "Untitled");
 
   if (!file) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
+  }
+
+  // Validate file type and size
+  const fileCheck = validateFile(file);
+  if (!fileCheck.valid) {
+    return NextResponse.json({ error: fileCheck.error }, { status: 400 });
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "pdf";
@@ -48,7 +54,7 @@ export async function POST(request: Request) {
     .upload(storagePath, file, { contentType: file.type, upsert: false });
 
   if (uploadErr) {
-    return NextResponse.json({ error: uploadErr.message }, { status: 500 });
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 
   const { data: projectRaw, error: projErr } = await supabase
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
   const project = projectRaw as Record<string, unknown> | null;
 
   if (projErr || !project) {
-    return NextResponse.json({ error: projErr?.message ?? "Insert failed" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
   }
 
   const projectId = project.id as string;

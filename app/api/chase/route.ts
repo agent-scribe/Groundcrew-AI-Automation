@@ -1,4 +1,5 @@
 import { applyRateLimit, getIdentifier } from "@/lib/rate-limit";
+import { isValidUUID } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendChaseEmail } from "@/lib/email/resend";
@@ -21,8 +22,8 @@ export async function POST(request: Request) {
   }
 
   const { projectId } = await request.json();
-  if (!projectId) {
-    return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
+  if (!projectId || !isValidUUID(projectId)) {
+    return NextResponse.json({ error: "Invalid projectId" }, { status: 400 });
   }
 
   // Load project

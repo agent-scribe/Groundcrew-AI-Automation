@@ -34,7 +34,7 @@ export default function MarketingLayout({
       <main id="main">{children}</main>
       <footer className="border-t border-border bg-surface">
         <div className="mx-auto max-w-7xl px-6 py-12 lg:px-12">
-          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
+          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-start">
             <div>
               <Logo size={20} />
               <p className="mt-2 max-w-sm text-sm text-text-2">
@@ -52,6 +52,12 @@ export default function MarketingLayout({
                 <span className="font-medium text-text">Integrations</span>
                 <Link href="/#integrations" className="text-text-2 hover:text-text">ClickUp</Link>
                 <Link href="/#integrations" className="text-text-2 hover:text-text">Asana</Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="font-medium text-text">Legal</span>
+                <Link href="/terms" className="text-text-2 hover:text-text">Terms</Link>
+                <Link href="/privacy" className="text-text-2 hover:text-text">Privacy</Link>
+                <Link href="/cookies" className="text-text-2 hover:text-text">Cookies</Link>
               </div>
             </div>
           </div>
