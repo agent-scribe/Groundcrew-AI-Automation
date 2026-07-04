@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Home,
   ClipboardList,
   LayoutTemplate,
   RadioTower,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 const nav = [
   { href: "/dashboard", label: "Home", icon: Home },
@@ -23,6 +26,35 @@ const nav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState("Groundcrew");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserEmail(user.email ?? null);
+        // Try to load org name
+        supabase
+          .from("org_members")
+          .select("orgs(name)")
+          .eq("user_id", user.id)
+          .single()
+          .then(({ data }) => {
+            if (data && (data as any).orgs?.name) {
+              setOrgName((data as any).orgs.name);
+            }
+          });
+      }
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
+
   return (
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
       <div className="flex h-[60px] items-center border-b border-border px-5">
@@ -61,9 +93,19 @@ export function AppSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-border p-4 text-xs text-text-2">
-        <p className="font-medium text-text">Northbeam Digital</p>
-        <p className="mt-0.5">Pro plan · demo workspace</p>
+      <div className="border-t border-border p-4">
+        <p className="text-xs font-medium text-text truncate">{orgName}</p>
+        {userEmail && (
+          <p className="mt-0.5 text-xs text-text-2 truncate">{userEmail}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-2 flex items-center gap-1.5 text-xs text-text-2 hover:text-text transition-colors"
+        >
+          <LogOut size={14} strokeWidth={1.5} />
+          Sign out
+        </button>
       </div>
     </aside>
   );

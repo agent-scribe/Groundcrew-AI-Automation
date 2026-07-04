@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Supabase auth needs cookies to pass through */
+  serverExternalPackages: [],
 };
 
 export default nextConfig;
